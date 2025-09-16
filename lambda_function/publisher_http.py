@@ -12,7 +12,7 @@ class SubmitterHttpPublisher:
 
     def __init__(self, base_url: str, path: str = "/sendMessage", max_pool: int = 256, timeout_s: float = 3.0):
         normalized_base = base_url.rstrip("/")
-        normalized_path = path.lstrip("/") if path else ""
+        normalized_path = path.lstrip("/") if path is not None else ""
         if normalized_path:
             self.url = f"{normalized_base}/{normalized_path}"
         else:
