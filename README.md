@@ -7,6 +7,7 @@ A single AWS Lambda (Python 3.12) that:
 
 **Publishers**
 - **Primary:** `submitter_http` → POST to `/sendMessage` with max parallelism.
+  - The `http.path` value accepts either `"sendMessage"` or `"/sendMessage"` (leading slash optional).
 - **Secondary (optional):** `sns` → publish to SNS FIFO (boto3).
 
 **Ordering (strict per-loan)**
@@ -32,7 +33,7 @@ A single AWS Lambda (Python 3.12) that:
   "job_id": "JOB-2025-09-12-001",
   "mode": "TEMPLATE_CLONE",
   "backend": "submitter_http",
-  "http": { "base_url": "https://internal/service", "path": "/sendMessage", "max_pool": 256, "timeout_s": 3 },
+  "http": { "base_url": "https://internal/service", "path": "sendMessage", "max_pool": 256, "timeout_s": 3 },
   "publish": { "lane_count": 64, "max_workers": 64, "time_budget_secs": 840 },
   "grouping": { "loan_field": "loanNumber", "strict_fifo_per_loan": true },
   "template_clone": {
