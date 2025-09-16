@@ -1,0 +1,41 @@
+{
+  "loanNumber": "#loanNumberPlaceholder",
+  "eventType": "LoanOnboardCompleted",
+  "timestamp": "2025-01-16T10:00:00Z",
+  "loanId": "#loanNumberPlaceholder",
+  "status": "ACTIVE",
+  "payload": {
+    "loanIdentifier": "#loanNumberPlaceholder",
+    "servicer": "ACME_MORTGAGE",
+    "originationDate": "2024-12-01",
+    "principalBalance": 250000,
+    "interestRate": 6.5,
+    "loanTerm": 360,
+    "propertyType": "SINGLE_FAMILY",
+    "occupancyType": "PRIMARY_RESIDENCE",
+    "ltvRatio": 80,
+    "creditScore": 740,
+    "borrowerInfo": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "ssn": "XXX-XX-#loanNumberPlaceholder"
+    },
+    "propertyAddress": {
+      "street": "123 Main St",
+      "city": "Springfield",
+      "state": "IL",
+      "zipCode": "62701"
+    },
+    "underwritingDetails": {
+      "dti": 35.5,
+      "housingExpenseRatio": 28.2,
+      "reserveMonths": 6
+    }
+  },
+  "metadata": {
+    "version": "1.0",
+    "source": "TEMPLATE_CLONE",
+    "sequenceNumber": "{seq}",
+    "jobId": "{jobId}"
+  }
+}

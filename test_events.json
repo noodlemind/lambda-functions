@@ -1,0 +1,84 @@
+{
+  "template_clone_http": {
+    "job_id": "JOB-2025-01-16-001",
+    "mode": "TEMPLATE_CLONE",
+    "backend": "submitter_http",
+    "http": {
+      "base_url": "https://internal.example.com/service",
+      "path": "/sendMessage",
+      "max_pool": 256,
+      "timeout_s": 3
+    },
+    "publish": {
+      "lane_count": 64,
+      "max_workers": 64,
+      "time_budget_secs": 840
+    },
+    "grouping": {
+      "loan_field": "loanNumber",
+      "strict_fifo_per_loan": true
+    },
+    "template_clone": {
+      "template_name": "Loan_Event_Sample.json",
+      "count": 250000,
+      "seq_start": 0,
+      "loan_number_rule": "derive_per_seq",
+      "sequence_prefix": "2715",
+      "event_name": null
+    },
+    "attributes": {
+      "source": "template_clone",
+      "environment": "production"
+    }
+  },
+  "s3_replay_sns": {
+    "job_id": "JOB-2025-01-16-002",
+    "mode": "S3_REPLAY",
+    "backend": "sns",
+    "sns": {
+      "topic_arn": "arn:aws:sns:us-east-1:123456789012:loan-events.fifo"
+    },
+    "publish": {
+      "lane_count": 32,
+      "max_workers": 32,
+      "time_budget_secs": 870
+    },
+    "s3_replay": {
+      "s3_uri": "s3://my-bucket/data/loans.ndjson",
+      "format": "ndjson",
+      "offset": 0,
+      "limit": 0,
+      "event_name": "LoanOnboardCompleted"
+    },
+    "attributes": {
+      "source": "s3_replay",
+      "batch_date": "2025-01-16"
+    }
+  },
+  "template_inline_test": {
+    "job_id": "TEST-001",
+    "mode": "TEMPLATE_CLONE",
+    "backend": "submitter_http",
+    "http": {
+      "base_url": "https://localhost:8080",
+      "path": "/sendMessage"
+    },
+    "template_clone": {
+      "template_inline": {
+        "loanNumber": "#loanNumberPlaceholder",
+        "eventType": "TestEvent",
+        "payload": {
+          "test": true,
+          "seq": "{seq}"
+        }
+      },
+      "count": 10,
+      "sequence_prefix": "9999"
+    },
+    "publish": {
+      "lane_count": 2,
+      "max_workers": 2,
+      "time_budget_secs": 60
+    }
+  }
+}
