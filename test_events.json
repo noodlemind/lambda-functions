@@ -5,7 +5,7 @@
     "backend": "submitter_http",
     "http": {
       "base_url": "https://internal.example.com/service",
-      "path": "/sendMessage",
+      "path": "sendMessage",
       "max_pool": 256,
       "timeout_s": 3
     },

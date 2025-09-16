@@ -11,7 +11,12 @@ class SubmitterHttpPublisher:
     """
 
     def __init__(self, base_url: str, path: str = "/sendMessage", max_pool: int = 256, timeout_s: float = 3.0):
-        self.url = base_url.rstrip("/") + path
+        normalized_base = base_url.rstrip("/")
+        normalized_path = path.lstrip("/") if path else ""
+        if normalized_path:
+            self.url = f"{normalized_base}/{normalized_path}"
+        else:
+            self.url = normalized_base
         self.pool = urllib3.PoolManager(
             num_pools=max_pool, maxsize=max_pool, timeout=urllib3.Timeout(total=timeout_s, connect=1.0, read=timeout_s), retries=False
         )
