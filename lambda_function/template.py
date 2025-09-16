@@ -20,21 +20,25 @@ def load_template_from_package_or_s3(template_name: Optional[str] = None,
         data = obj["Body"].read()
         return json.loads(data), os.path.basename(key)
     
-    # package sample - find samples directory relative to lambda_function package
-    # In Lambda, the structure will be: /var/task/lambda_function/ and /var/task/samples/
-    # Locally, it's: .../lambda-functions/lambda_function/ and .../lambda-functions/samples/
+    # package sample - find samples directory relative to lambda_function package.
+    # Samples now live inside the package for simpler deployments, but fall back to the
+    # legacy top-level folder if someone is still using the old layout.
     lambda_dir = os.path.dirname(os.path.abspath(__file__))
-    base_dir = os.path.dirname(lambda_dir)  # Go up from lambda_function/ to lambda-functions/
-    samples_dir = os.path.join(base_dir, "samples")
-    
+    candidate_dirs = [
+        os.path.join(lambda_dir, "samples"),
+        os.path.join(os.path.dirname(lambda_dir), "samples"),  # legacy location
+    ]
+
     template_file = template_name or "Loan_Event_Sample.json"
-    pkg_path = os.path.join(samples_dir, template_file)
-    
-    if not os.path.exists(pkg_path):
-        raise FileNotFoundError(f"Template file not found: {pkg_path}")
-    
-    with open(pkg_path, "r", encoding="utf-8") as f:
-        return json.load(f), os.path.basename(pkg_path)
+
+    for samples_dir in candidate_dirs:
+        pkg_path = os.path.join(samples_dir, template_file)
+        if os.path.exists(pkg_path):
+            with open(pkg_path, "r", encoding="utf-8") as f:
+                return json.load(f), os.path.basename(pkg_path)
+
+    search_paths = ", ".join(candidate_dirs)
+    raise FileNotFoundError(f"Template file '{template_file}' not found in: {search_paths}")
 
 def _deep_replace(obj: Any, token: str, value: str) -> Any:
     """Recursively replace tokens in nested data structures."""
