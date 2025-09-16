@@ -1,6 +1,4 @@
 import os
-import sys
-import json
 import time
 from typing import Any, Dict, Iterable, Tuple
 
@@ -71,15 +69,17 @@ def lambda_handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         path = http_cfg.get("path", "/sendMessage")
         max_pool = int(http_cfg.get("max_pool", 256))
         timeout_s = float(http_cfg.get("timeout_s", 3))
-        worker_factory = lambda lane_id: SubmitterHttpPublisher(
-            base_url=base_url, path=path, max_pool=max_pool, timeout_s=timeout_s
-        )
+        def worker_factory(lane_id: int) -> SubmitterHttpPublisher:
+            return SubmitterHttpPublisher(
+                base_url=base_url, path=path, max_pool=max_pool, timeout_s=timeout_s
+            )
     elif backend == "sns":
         sns_cfg = event.get("sns", {}) or {}
         topic_arn = sns_cfg.get("topic_arn")
         if not topic_arn:
             raise ValueError("sns.topic_arn is required for sns backend")
-        worker_factory = lambda lane_id: SnsLanePublisher(topic_arn=topic_arn, batch_size=10)
+        def worker_factory(lane_id: int) -> SnsLanePublisher:
+            return SnsLanePublisher(topic_arn=topic_arn, batch_size=10)
     else:
         raise ValueError("backend must be submitter_http or sns")
 
@@ -97,7 +97,7 @@ def lambda_handler(event: Dict[str, Any], context) -> Dict[str, Any]:
                 raise ValueError("s3_replay.s3_uri is required in S3_REPLAY mode")
             fmt = (s3r.get("format") or "ndjson").lower()
             offset = int(s3r.get("offset") or 0)
-            limit = int(s3r.get("limit") or 0)
+            _limit = int(s3r.get("limit") or 0)
             src_name = os.path.basename(parse_s3_uri(s3_uri)[1])
             default_event_name = derive_event_name(src_name, s3r.get("event_name"), None)
 
