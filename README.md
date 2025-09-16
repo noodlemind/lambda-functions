@@ -3,7 +3,7 @@
 ## What this does
 A single AWS Lambda (Python 3.12) that:
 1) **S3_REPLAY** — Streams a file from S3 and publishes each record.
-2) **TEMPLATE_CLONE** — Loads an on-package template (`samples/Loan_Event_Sample.json`) or a template from S3 and publishes **N clones**.
+2) **TEMPLATE_CLONE** — Loads an on-package template (`lambda_function/samples/Loan_Event_Sample.json`) or a template from S3 and publishes **N clones**.
 
 **Publishers**
 - **Primary:** `submitter_http` → POST to `/sendMessage` with max parallelism.
@@ -56,7 +56,7 @@ A single AWS Lambda (Python 3.12) that:
   - SNS path: `sns:Publish` to topic ARN
   - S3 path: `s3:GetObject` to read S3 files (and `s3:GetObject` for S3 templates)
 - **Package:**
-  - Zip the `lambda/` folder and `samples/` folder into the deployment artifact.
+  - Zip the `lambda_function/` folder (which now includes the `samples/` assets) into the deployment artifact.
   - No external libraries (only stdlib + boto3/urllib3 present in Lambda).
 
 ---

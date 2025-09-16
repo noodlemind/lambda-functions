@@ -1,3 +1,5 @@
+import base64
+import json
 import os
 import time
 from typing import Any, Dict, Iterable, Tuple
@@ -39,6 +41,16 @@ def lambda_handler(event: Dict[str, Any], context) -> Dict[str, Any]:
       - template_clone: { template_name | template_s3_uri | template_inline, count, seq_start, loan_number_rule, sequence_prefix, event_name }
       - attributes: dict (merged into attributes for each publish)
     """
+    orig_event = event
+    is_alb_event = isinstance(event, dict) and bool(event.get("requestContext", {}).get("elb"))
+    if is_alb_event:
+        body = orig_event.get("body") or "{}"
+        if orig_event.get("isBase64Encoded"):
+            body = base64.b64decode(body)
+        if isinstance(body, bytes):
+            body = body.decode("utf-8")
+        event = json.loads(body)
+
     start = time.time()
     job_id = event.get("job_id") or f"JOB-{int(start)}"
     mode = event.get("mode")
@@ -131,7 +143,7 @@ def lambda_handler(event: Dict[str, Any], context) -> Dict[str, Any]:
 
         else:  # TEMPLATE_CLONE
             tcfg = event.get("template_clone", {}) or {}
-            # Source template: package (samples/), S3, or inline
+            # Source template: package (lambda_function/samples/), S3, or inline
             template_name = tcfg.get("template_name") or "Loan_Event_Sample.json"
             template_s3_uri = tcfg.get("template_s3_uri")
             template_inline = tcfg.get("template_inline")
@@ -178,13 +190,23 @@ def lambda_handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         processed = p2  # count final successful sends
         failed += f2
 
-        return {
+        result = {
             "processed": processed,
             "failed": failed,
             "next_offset": next_offset,
             "partial": (time.time() - start) >= (time_budget - 1) or (max_messages and processed >= max_messages),
             "elapsed_ms": int((time.time() - start) * 1000),
         }
+
+        if is_alb_event:
+            return {
+                "statusCode": 200,
+                "headers": {"Content-Type": "application/json"},
+                "isBase64Encoded": False,
+                "body": json.dumps(result),
+            }
+
+        return result
 
     finally:
         lanes.force_close()
